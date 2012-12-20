@@ -1,0 +1,140 @@
+{% extends 'AcmeDemoBundle::layout.html.twig' %}
+
+{% block title %}Symfony - Welcome{% endblock %}
+
+{% block content_header '' %}
+
+{% block content %}
+
+    <form class="form">
+        <fieldset>
+            <legend>Successful AJAX Request</legend>
+            <p>Make an AJAX request. If you're not logged in, the login dialog should appear.</p>
+
+            <button id="successfulAjaxRequestBtn" type="button">Make request</button>
+
+            <p class="ajax-success text-success">
+
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Unsuccessful AJAX Request</legend>
+            <p>Make an AJAX Request that will cause an error.</p>
+            <button id="unsuccessfulAjaxRequestBtn" type="button">Make request.</button>
+            <p class="ajax-error text-error">
+
+            </p>
+        </fieldset>
+        <fieldset>
+            <legend>Logout</legend>
+            <p>This will log you out, and open the modal login dialog.</p>
+            <button id="logoutBtn" type="button">Logout</button>
+        </fieldset>
+    </form>
+
+    <div id="login" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3 id="myModalLabel">Login</h3>
+        </div>
+        <div class="modal-body">
+            <form>
+                <p class="login-error text-error"></p>
+                <label for="username">Username</label>
+                <input id="username" name="_username" />
+                <label for="password">Password</label>
+                <input id="password" name="_password" type="password" />
+                <input type="hidden" name="_csrf_token" />
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+            <button id="loginBtn" class="btn btn-primary">Login</button>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script type="text/javascript">
+    function successfulAjaxRequest()
+    {
+        $.ajax('ajax', {
+            dataType: 'json',
+            success: function (data) {
+                $('.ajax-success').empty().append(data.message);
+            }
+        });
+    }
+
+    function unsuccessfulAjaxRequest()
+    {
+        $.ajax('invalid-route', {
+            dataType: 'json',
+            error: function (xhr) {
+                var data = $.parseJSON(xhr.responseText);
+                $('.ajax-error').empty().append(data.message);
+            }
+        });
+    }
+
+    function logout()
+    {
+        $.ajax('logout');
+    }
+
+    function showLoginForm()
+    {
+        $('#login').modal();
+    }
+
+    function login()
+    {
+        $.ajax('login', {
+            success: function (response) {
+                var csrf = $('<div/>').append(response).find('input[name="_csrf_token"]').val();
+
+                if (!csrf) {
+                    throw 'Failed to parse CSRF value';
+                }
+
+                $.ajax('login_check', {
+                    type: "POST",
+                    data: {
+                        _username: $('#username').first().val(),
+                        _password: $('#password').first().val(),
+                        _csrf_token: csrf
+                    },
+                    success: function () {
+                        $('#login').modal('hide');
+                    },
+                    error: function (xhr) {
+                        var data = $.parseJSON(xhr.responseText);
+                        $('.login-error').empty().append(data.message);
+                    }
+                });
+            }
+        })
+    }
+
+    $(document).ready(function () {
+        // Define a global error handler
+        $(document).ajaxError(function (e, xhr, settings, exception) {
+            var STATUS_CODE_UNAUTHORIZED = 401,
+                STATUS_CODE_FORBIDDEN = 403;
+
+            // If we don't have a valid session, show a login form
+            if (xhr.status === STATUS_CODE_UNAUTHORIZED || xhr.status === STATUS_CODE_FORBIDDEN) {
+                showLoginForm();
+            }
+        });
+
+        $('#successfulAjaxRequestBtn').on('click', successfulAjaxRequest);
+        $('#unsuccessfulAjaxRequestBtn').on('click', unsuccessfulAjaxRequest);
+        $('#logoutBtn').on('click', logout);
+        $('#loginBtn').on('click', login);
+    });
+</script>
+
+{% endblock %}
