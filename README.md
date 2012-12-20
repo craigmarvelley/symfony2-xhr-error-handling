@@ -29,8 +29,7 @@ This is a demo app that accompanies [this blog post](http://marvelley.com/2012/1
 
   6. Create the database schema for the app:
 
-        $ app/console doctrine:schema:update --force        
-        $ app/console cw:setup:admin
+        $ app/console doctrine:schema:update --force
 
   7. Create a user:
   
