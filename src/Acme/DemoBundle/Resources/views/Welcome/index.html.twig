@@ -1,6 +1,6 @@
 {% extends 'AcmeDemoBundle::layout.html.twig' %}
 
-{% block title %}Symfony - Welcome{% endblock %}
+{% block title %}Symfony2 XHR Error Handling{% endblock %}
 
 {% block content_header '' %}
 
@@ -13,17 +13,13 @@
 
             <button id="successfulAjaxRequestBtn" type="button">Make request</button>
 
-            <p class="ajax-success text-success">
-
-            </p>
+            <p class="ajax-success text-success"></p>
         </fieldset>
         <fieldset>
             <legend>Unsuccessful AJAX Request</legend>
             <p>Make an AJAX Request that will cause an error.</p>
-            <button id="unsuccessfulAjaxRequestBtn" type="button">Make request.</button>
-            <p class="ajax-error text-error">
-
-            </p>
+            <button id="unsuccessfulAjaxRequestBtn" type="button">Make request</button>
+            <p class="ajax-error text-error"></p>
         </fieldset>
         <fieldset>
             <legend>Logout</legend>
@@ -58,6 +54,10 @@
 {% block scripts %}
 
 <script type="text/javascript">
+
+    /**
+     * Makes a successful request, and updates the page
+     */
     function successfulAjaxRequest()
     {
         $.ajax('ajax', {
@@ -68,6 +68,9 @@
         });
     }
 
+    /**
+     * Makes an unsuccessful request, and displays the error message contained in the response
+     */
     function unsuccessfulAjaxRequest()
     {
         $.ajax('invalid-route', {
@@ -79,16 +82,25 @@
         });
     }
 
+    /**
+     * Logs the current user out of the application
+     */
     function logout()
     {
         $.ajax('logout');
     }
 
+    /**
+     * Displays the modal login form
+     */
     function showLoginForm()
     {
         $('#login').modal();
     }
 
+    /**
+     * Attempts to log in the user
+     */
     function login()
     {
         $.ajax('login', {
@@ -107,7 +119,7 @@
                         _csrf_token: csrf
                     },
                     success: function () {
-                        $('#login').modal('hide');
+                        var dialog = $("#login").modal('hide');
                     },
                     error: function (xhr) {
                         var data = $.parseJSON(xhr.responseText);
